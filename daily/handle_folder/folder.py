@@ -103,6 +103,21 @@ class Files:
         format_dt_c = dt_c.strftime('%Y-%m-%d_%Hh-%Mm')
 
         return format_dt_c
+    
+    def __get_file_extension(self, fullpath: str, filename: str) -> str:
+        """
+        Description:
+        Formats the date to BR style
+        
+        Parameters:
+        :dt_c:   (datetime) date time
+        
+        :return: (str) date in BR format
+        """
+        path = os.path.join(fullpath, filename)
+        _f, extension = os.path.splitext(path)
+        
+        return extension
 
     def __rename_file(self, fullpath: str, filename: str) -> None:
         """
@@ -116,6 +131,7 @@ class Files:
         """
         
         dt_c = self.__get_create_date(fullpath, filename)
+        extension = self.__get_file_extension(fullpath, filename)
         format_dt_c = self.__date_br_format(dt_c)
 
         new_name = ''
@@ -130,7 +146,7 @@ class Files:
         else:
             new_name = 'generic'
 
-        new_name = ''.join([new_name, "--", format_dt_c, '.jpg'])
+        new_name = ''.join([new_name, "--", format_dt_c, extension])
 
         current_name_path = os.path.join(fullpath, filename)
         new_name_path = os.path.join(fullpath, new_name)
