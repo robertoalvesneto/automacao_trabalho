@@ -189,9 +189,28 @@ class Database:
         :return:    (list) all tasks
         """
 
-        sql = 'SELECT * FROM task ORDER BY month, progress'
+        sql = 'SELECT * FROM task ORDER BY month DESC, progress'
 
         resp = self.__run_sql_instruction(sql, None)
+
+        rows = resp.fetchall()
+
+        return rows
+
+    def select_all_tasks_by_month(self, month: int) -> list:
+        """
+        Description:
+        Query all rows of month (month) in the tasks table
+        
+        Parameters:
+        :month: (int) pass value of month you want get
+
+        :return:    (list) all tasks
+        """
+
+        sql = 'SELECT * FROM task WHERE month = ? ORDER BY month DESC, progress'
+
+        resp = self.__run_sql_instruction(sql, [month])
 
         rows = resp.fetchall()
 
