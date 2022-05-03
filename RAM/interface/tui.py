@@ -170,17 +170,25 @@ class TUI:
 
         return progress
 
-    def list_tasks(self) -> list:
+    def list_tasks(self, current_month: bool = None) -> list:
         """
         Description:
         Create struct of first menu, show him and return results
 
+        Parameters:
+        :current_month: (bool) choose if want get all tasks or only of
+                        current month
+        
         :return:   (list) name of option, index and list of tasks
         """
         
         title = 'Choose one option:'
         subtitle = '\n   %\tfn\tmonth\tdescription'
-        tasks = self.api.get_tasks()
+        tasks = None
+        if current_month in (False, None):
+            tasks = self.api.get_tasks()
+        else:
+            tasks = self.api.get_tasks_for_current_month()
         text_tasks = self.__format_tasks(tasks)
 
         text_tasks.append('+ add tasks')
@@ -299,7 +307,7 @@ class TUI:
         """
         self.clear_terminal()
 
-        option, index, tasks = self.list_tasks()
+        option, index, tasks = self.list_tasks(True)
 
         if index < len(tasks):
             self.edit_task(option, tasks[index])
