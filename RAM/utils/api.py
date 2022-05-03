@@ -17,6 +17,11 @@ class My_API:
         rows = self.db.select_all_tasks()
 
         return rows
+    
+    def get_tasks_for_current_month(self):
+        rows = self.db.select_all_tasks_by_month(self.utils.get_month())
+
+        return rows
 
     def is_not_empty(self, value) -> bool:
         return False if value in ('', None) else True
