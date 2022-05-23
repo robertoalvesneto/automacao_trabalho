@@ -1,0 +1,204 @@
+#!/bin/bash
+GIT=`which git`
+REPO=`pwd`
+
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+BBLACK="\e[1;30m"
+BPUR="\e[1;35m"
+NOCOLOR="\033[0m"
+
+function work () {
+	# Messages
+	m_front='>>\t>>\tFRONTEND\t<<\t<<'
+	m_back='>>\t>>\tBACKEND\t<<\t<<'
+	m_install='>\t>\tINSTALL MODULES\t<\t<'
+	m_build='>\t>\tBUILD PROJECT\t<\t<'
+	m_firefox='>\t>\tLAUNCH FIREFOX\t<\t<'
+	m_invalid_dir='ERROR: unrecognized working directory'
+	m_invalid_choose_task='ERROR: this parameter needs you to flag the history'
+	m_invalid_flag='ERROR: invalid flag for this parameter'
+	m_invalid_pars='ERROR: invalid parameter or parameter combination'
+
+	function help_message () {
+		echo -e "${BPUR}HELP:${NOCOLOR}"
+		echo -e "${BPUR}Usage:${NOCOLOR} work [OPTION]... [TASK]..."
+		echo -e "${BPUR}Without Arguments:${NOCOLOR}"
+		echo -e "\tAutomatically tries to identify if it is frontend or backend"
+		echo -e "${BPUR}Arguments:${NOCOLOR}"
+		echo -e "\t-rf\t\t run frontend\n\t\t\t${BBLACK}(if you pass more arguments, this one comes first)${NOCOLOR}"
+		echo -e "\t-rb\t\t run backend\n\t\t\t${BBLACK}(if you pass more arguments, this one comes first)${NOCOLOR}"
+		echo -e "\t--auto\t\t Automatically tries to identify if it is frontend or backend\n\t\t\t${BBLACK}(if you pass more arguments, this one comes first)${NOCOLOR}"
+		echo -e "\t-cop\t\t update branchs, discart local changes, checkout and pull branch"
+		echo -e "\t  -m, --main\t\t main branch"
+		echo -e "\t  -d, --develop\t\t develop branch"
+		echo -e "\t  -f, --feature\t\t feature branch ${BBLACK}(pass sub branch)${NOCOLOR}"
+		echo -e "\t  -b, --bugfix\t\t bugfix branch ${BBLACK}(pass sub branch)${NOCOLOR}"
+		echo -e "\t  -h, --hotfix\t\t hotfix branch ${BBLACK}(pass sub branch)${NOCOLOR}"
+		echo -e "${BPUR}Example:${NOCOLOR}"
+		echo -e "\twork -rb"
+		echo -e "\twork -cop --main"
+		echo -e "\twork --auto -cop -d"
+		echo -e "\twork --auto -cop -f [SUB-BRANCH]"
+	}
+
+	function build_front () {
+		echo -e "${GREEN}$m_front${NOCOLOR}"
+		echo -e "${GREEN}$m_install${NOCOLOR}"
+		npm install
+		echo -e "\n\n${GREEN}$m_firefox${NOCOLOR}"
+		firefox http://localhost:3000/
+		echo -e "\n\n${GREEN}$m_build${NOCOLOR}"
+		npm run dev
+	}
+
+	function build_back () {
+		echo -e "${GREEN}$m_back${NOCOLOR}"
+		echo -e "${GREEN}$m_install${NOCOLOR}"
+		npm install
+		echo -e "\n\n${GREEN}$m_build${NOCOLOR}"
+		npm start
+	}
+
+	function autobuild () {
+		# Try auto choose if is build frontend or build backend
+
+		if [[ -e next.config.js ]]; then
+			build_front
+		elif [[ -e nest-cli.json ]]; then
+			build_back
+		else
+			echo -e "\n${RED}$m_invalid_dir${NOCOLOR}"
+		fi
+	}
+
+	function choose_build () {
+		# Choose if is build frontend or build backend
+		#
+		# PARAMETERS:
+		# 	-rf = run frontend
+		#	-rb = run backend
+
+		if [[ $1 = "-rf" ]]; then
+			build_front
+		elif [[ $1 = "-rb" ]]; then
+			build_back
+		fi
+	}
+
+	function git_update_branchs () {
+		${GIT} --git-dir="$REPO/.git" fetch origin
+	}
+
+	function git_discard_changes () {
+		${GIT} --git-dir="$REPO/.git" reset --hard HEAD
+		${GIT} clean -df
+	}
+
+	function git_checkout_pull () {
+		ppath=$1
+		${GIT} --git-dir="$REPO/.git" checkout remotes/origin/$ppath
+		${GIT} pull origin $ppath
+	}
+
+	function cop () {
+		# Make checkout and pull with branch
+		# NAME OF FUNCTION:
+		#	cop	=	co + p	=	CheckOut + Pull
+		#
+		# PARAMETERS:
+		# 	ONLY 1:
+		#		Connects branch that doesn't need more specifications
+		#
+		#		NAMES:
+		#			'-m' or '--main'		=	choose main
+		#			'-d' or '--develop'	= choose develop
+		#	ONLY 2:
+		#		Connects to branch that has sub branchs
+		#
+		#		NAMES:
+		#			'-f' or '--feature'	=	choose feature
+		#			'-b' or '--bugfix'	= 	choose bugfix
+		#			'-b' or '--hotfix'	=	choose hotfix
+
+		if [[ $# -eq 1 ]]; then
+			if [[ $1 = "-m" || $1 = "--main" ]]; then
+				git_update_branchs
+				git_discard_changes
+				git_checkout_pull main
+			elif [[ $1 = "-d" || $1 = "--develop" ]]; then
+				git_update_branchs
+				git_discard_changes
+				git_checkout_pull develop
+			elif [[ ($1 = "-f" || $1 = "--feature") ||
+					($1 = "-b" || $1 = "--bugfix") ||
+					($1 = "-h" || $1 = "--hotfix") ]]; then
+				echo -e "\n${RED}$m_invalid_choose_task${NOCOLOR}"
+			fi
+		elif [[ $# -eq 2 ]]; then
+			if [[ ($1 = "-f" || $1 = "--feature") ]]; then
+				git_update_branchs
+				git_discard_changes
+				git_checkout_pull "feature/$2"
+			elif [[ ($1 = "-b" || $1 = "--bugfix") ]]; then
+				git_update_branchs
+				git_discard_changes
+				git_checkout_pull "bugfix/$2"
+			elif [[ ($1 = "-b" || $1 = "--hotfix") ]]; then
+				git_update_branchs
+				git_discard_changes
+				git_checkout_pull "hotfix/$2"
+			else
+				echo -e "\n${RED}$m_invalid_flag${NOCOLOR}"
+			fi
+		fi
+	}
+
+	if [[ $# -eq 0 ]]; then
+		autobuild
+	elif [[ $# -eq 1 ]]; then
+		if [[ $1 = "-rf" || $1 = "-rb" ]]; then
+			choose_build $1
+		elif [[ $1 = "--auto" ]]; then
+			autobuild
+		elif [[ $1 = "-h" || $1 = "--help" ]]; then
+			help_message
+		else
+			echo -e "\n${RED}$m_invalid_pars${NOCOLOR}"
+		fi
+	elif [[ $# -eq 2 ]]; then
+		if [[ $1 = "-cop" ]]; then
+			cop $2
+		else
+			echo -e "\n${RED}$m_invalid_pars${NOCOLOR}"
+		fi
+	elif [[ $# -eq 3 ]]; then
+		if [[ $1 = "-rf" || $1 = "-rb" || $1 = "--auto" ]]; then
+			if [[ $1 = "--auto" ]]; then
+				cop $3
+				autobuild
+			elif [[ $2 = "-cop" ]]; then
+				cop $3
+				choose_build $1
+			else
+				echo -e "\n${RED}$m_invalid_pars${NOCOLOR}"
+			fi
+		elif [[ $1 = "-cop" ]]; then
+			cop $2 $3
+		fi
+	elif [[ $# -eq 4 ]]; then
+		if [[ $1 = "-rf" || $1 = "-rb" || $1 = "--auto" ]]; then
+			if [[ $1 = "--auto" ]]; then
+				cop $3 $4
+				autobuild
+			elif [[ $2 = "-cop" ]]; then
+				cop $3 $4
+				choose_build $1
+			else
+				echo -e "\n${RED}$m_invalid_pars${NOCOLOR}"
+			fi
+		fi
+	else
+		echo -e "\n${RED}$m_invalid_pars${NOCOLOR}"
+	fi
+}
