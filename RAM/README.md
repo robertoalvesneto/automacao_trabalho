@@ -5,7 +5,7 @@ documentado.
 
 ## Como usar:
 ### Pré configurações:
-1. Crie um arquivo `.env` na raiz do projeto com as seguintes váriaveis:
+1. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 ``` .env
 WINDOWSPATH={path_windows}
 LINUXPATH={path_linux}
