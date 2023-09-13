@@ -63,17 +63,47 @@ class TUI:
         for row in tasks:
             row = list(row)
 
-            description = row[1]
-            progress = str(row[2])
-            fornight = self.api.convert_fornight_to_str(row[4])
-            month = self.utils.convert_month(row[5])
+            name = row[1]
+            description = row[2]
+            progress = str(row[3])
+            fornight = self.api.convert_fornight_to_str(row[5])
+            month = self.utils.convert_month(row[6])
 
             line_text = progress + '\t' + fornight + '\t'
-            line_text += month + '\t' + description
+            line_text += month + '\t' + name
 
             m_rows.append(line_text)
 
         return m_rows
+
+    def __input_name(self, value: str = None) -> str:
+        """
+        Name:
+        Auxiliar name input interface by terminal
+
+        Parameters:
+        :value:    (str) previous value of input
+
+        :return:   (str) new value
+        """
+
+        name = ''
+        count = 0
+        while name == '':
+            print("Previous value: ", value)
+            print("Insert name:")
+            name = input(":: ")
+
+            self.clear_terminal()
+
+            if count == 1 and name == '':
+                print(pressettext.END_EMPTYINPUT)
+                exit()
+            elif name == '':
+                print(pressettext.EMPTYINPUT)
+                count += 1
+
+        return name
 
     def __input_description(self, value: str = None) -> str:
         """
@@ -183,7 +213,7 @@ class TUI:
         """
         
         title = 'Choose one option:'
-        subtitle = '\n   %\tfn\tmonth\tdescription'
+        subtitle = '\n   %\tfn\tmonth\tname'
         tasks = None
         if current_month in (False, None):
             tasks = self.api.get_tasks()
@@ -191,6 +221,7 @@ class TUI:
             tasks = self.api.get_tasks_for_current_month()
         text_tasks = self.__format_tasks(tasks)
 
+        text_tasks.append('\n')
         text_tasks.append('+ add tasks')
         text_tasks.append('+ export tasks as a csv')
         text_tasks.append('close')
@@ -239,13 +270,14 @@ class TUI:
 
         option, index = pick(options, title, indicator='=>')
 
+        print(task)
         update_value = None
         if option == 'update progress':
-            update_value = self.__input_progress(task[2])
+            update_value = self.__input_progress(task[3])
         elif option == 'edit description':
-            update_value = self.__input_description(task[1])
+            update_value = self.__input_description(task[2])
         elif option == 'edit fornight':
-            update_value = self.__input_fornight(task[4])
+            update_value = self.__input_fornight(task[5])
         else:
             self.delete_task(task)
             exit()
@@ -260,6 +292,7 @@ class TUI:
         struct to database create him
         """
         
+        name = self.__input_name()
         description = self.__input_description()
         fornight = self.__input_fornight()
         progress = self.__input_progress()
@@ -267,6 +300,7 @@ class TUI:
         month = self.utils.get_month()
 
         message = self.api.insert_task(
+            name,
             description,
             progress,
             fornight,

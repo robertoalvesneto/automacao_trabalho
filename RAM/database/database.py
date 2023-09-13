@@ -2,13 +2,16 @@ import sqlite3
 from sqlite3 import Error
 from typing import Literal
 
+from utils.folder import Folder
+
 class Database:
     """
     Class to connect to the database and execute the queries
     """
 
     def __init__(self):
-        self.path = "database/pythonsqlite.db"
+        self.folder = Folder()
+        self.path = self.folder.get_base_path() + "/RAM/database/pythonsqlite.db"
 
     def __create_connection(self) -> sqlite3.Connection:
         """
@@ -56,6 +59,7 @@ class Database:
 
         sql_create_task_table = """ CREATE TABLE IF NOT EXISTS task (
                                             id integer PRIMARY KEY,
+                                            name text NOT NULL,
                                             description text NOT NULL,
                                             progress tinyint NOT NULL,
                                             owner text NOT NULL,
@@ -83,10 +87,10 @@ class Database:
 
         :return: valid task (tuple)
         """
-        valid_keys = ('id', 'description', 'progress', 'owner',
+        valid_keys = ('id', 'name', 'description', 'progress', 'owner',
                       'fortnight', 'month', 'last_modify')
-        valid_map = {'id': 0, 'description': 0, 'progress': 0, 'owner': 0,
-                     'fortnight': 0, 'month': 0, 'last_modify': 0}
+        valid_map = {'id': 0, 'name': 0, 'description': 0, 'progress': 0,
+                     'owner': 0, 'fortnight': 0, 'month': 0, 'last_modify': 0}
 
         t_task = []
 
@@ -139,8 +143,8 @@ class Database:
 
         task = self.__validate_dict('insert', task)
 
-        sql = ''' INSERT INTO task(description,progress,owner,fortnight,month,last_modify)
-                VALUES(?,?,?,?,?,?) '''
+        sql = ''' INSERT INTO task(name, description,progress,owner,fortnight,month,last_modify)
+                VALUES(?,?,?,?,?,?,?) '''
 
         resp = self.__run_sql_instruction(sql, task)
 
@@ -156,7 +160,8 @@ class Database:
         task = self.__validate_dict('update', task)
 
         sql = ''' UPDATE task
-                SET description = ?,
+                SET name = ?,
+                    description = ?,
                     progress = ?,
                     owner = ?,
                     fortnight = ?,
@@ -225,12 +230,15 @@ class Database:
         :sql:     (str) sql struction
         :value:   (tuple) values to insert on query
         """
+        
+        print(self.folder.get_base_path())
+        print(self.path)
         conn = self.__create_connection()
 
         with conn:
             cur = conn.cursor()
 
-            if values == None:
+            if values == None: 
                 cur.execute(sql)
             else:
                 cur.execute(sql, values)

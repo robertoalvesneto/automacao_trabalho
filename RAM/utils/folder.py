@@ -29,7 +29,9 @@ class Folder:
         if platform.system() == 'Windows':
             self.source_path = config('WINDOWSPATH')
         elif platform.system() == 'Linux':
-            self.source_path = config('LINUXPATH')
+            base_path = os.path.expanduser("~")
+            relative_path = config('LINUXPATH')
+            self.source_path = os.path.join(base_path, relative_path)
         else:
             raise Exception('whoami?')
 
@@ -56,6 +58,12 @@ class Folder:
             os.mkdir(path)
 
         self.source_path = path
+
+
+    def get_base_path(self) -> str:
+        base_path = os.path.expanduser("~")
+        relative_path = config('CURRENTCODEDIR')
+        return os.path.join(base_path, relative_path)
 
 
     def get_create_date(self, filename: str) -> datetime:

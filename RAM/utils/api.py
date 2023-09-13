@@ -123,8 +123,9 @@ class My_API:
 
         return l_tasks
 
-    def insert_task(self, description, progress, fornight, month, last_modify):
+    def insert_task(self, name, description, progress, fornight, month, last_modify):
         new_task = {
+            'name': name,
             'description': description,
             'progress': progress,
             'owner': config('OWNER'),
@@ -142,12 +143,13 @@ class My_API:
 
         update_task = {
             'id': task[0],
-            'description': task[1],
-            'progress': task[2],
-            'owner': task[3],
-            'fortnight': task[4],
-            'month': task[5],
-            'last_modify': task[6]
+            'name': task[1],
+            'description': task[2],
+            'progress': task[3],
+            'owner': task[4],
+            'fortnight': task[5],
+            'month': task[6],
+            'last_modify': task[7]
         }
 
         if option == 0:
@@ -167,12 +169,13 @@ class My_API:
 
         task = {
             'id': task[0],
-            'description': task[1],
-            'progress': task[2],
-            'owner': task[3],
-            'fortnight': task[4],
-            'month': task[5],
-            'last_modify': task[6]
+            'name': task[1],
+            'description': task[2],
+            'progress': task[3],
+            'owner': task[4],
+            'fortnight': task[5],
+            'month': task[6],
+            'last_modify': task[7]
         }
 
         self.db.delete_task_task(task)
